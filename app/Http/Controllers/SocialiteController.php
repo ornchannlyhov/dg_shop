@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserRole;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -35,7 +36,10 @@ class SocialiteController extends Controller
                     // Set a random password, or leave it null
                     'password' => bcrypt('password'), 
                 ]);
-                
+                UserRole::create([
+                    'user_id' => $user->user_id,
+                    'role_id' => '1',
+                ]);
                 Auth::login($user);
             }
             
