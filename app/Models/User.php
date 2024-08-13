@@ -14,9 +14,9 @@ class User extends Authenticatable
     protected $primaryKey = 'user_id';
     protected $fillable = ['name', 'email', 'password', 'phone_number', 'address','provider', 'provider_id'];
 
-    public function roles()
+    public function user_role()
     {
-        return $this->belongsToMany(Role::class, 'user_roles');
+        return $this->hasMany(UserRole::class);
     }
 
     public function reviews()
@@ -37,6 +37,10 @@ class User extends Authenticatable
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+    public function sellers()
+    {
+        return $this->hasMany(Seller::class, 'user_id');
     }
 
     /**
