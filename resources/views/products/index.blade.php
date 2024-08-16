@@ -1,40 +1,48 @@
-@extends('layouts.app')
+<x-guest-layout>
+    <div class="container mx-auto p-6">
+        <h1 class="text-2xl font-bold mb-6">Products</h1>
 
-@section('content')
-    <h1>Products</h1>
-    <a href="{{ route('products.create') }}" class="btn btn-primary">Create New Product</a>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Price</th>
-                <th>Stock Quantity</th>
-                <th>Store</th>
-                <th>Category</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($products as $product)
+        @if (session('success'))
+            <div class="bg-green-100 text-green-800 p-4 mb-4 rounded">
+                {{ session('success') }}
+            </div>
+        @elseif (session('error'))
+            <div class="bg-red-100 text-red-800 p-4 mb-4 rounded">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        <a href="{{ route('products.create') }}" class="text-blue-500 hover:underline">Add New Product</a>
+
+        <table class="min-w-full divide-y divide-gray-200 mt-6">
+            <thead class="bg-gray-50">
                 <tr>
-                    <td>{{ $product->name }}</td>
-                    <td>{{ $product->description }}</td>
-                    <td>{{ $product->price }}</td>
-                    <td>{{ $product->stock_quantity }}</td>
-                    <td>{{ $product->store->name }}</td>
-                    <td>{{ $product->category->name }}</td>
-                    <td>
-                        <a href="{{ route('products.show', $product->id) }}" class="btn btn-info">View</a>
-                        <a href="{{ route('products.edit', $product->id) }}" class="btn btn-warning">Edit</a>
-                        <form action="{{ route('products.destroy', $product->id) }}" method="POST" style="display:inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">Delete</button>
-                        </form>
-                    </td>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
-@endsection
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @foreach ($products as $product)
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ $product->name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ $product->description }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${{ number_format($product->price, 2) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ $product->stock_quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <a href="{{ route('products.show', $product->product_id) }}" class="text-blue-500 hover:underline">View</a>
+                            <a href="{{ route('products.edit', $product->product_id) }}" class="text-yellow-500 hover:underline ml-2">Edit</a>
+                            <form action="{{ route('products.destroy', $product->product_id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-500 hover:underline ml-2">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</x-guest-layout>

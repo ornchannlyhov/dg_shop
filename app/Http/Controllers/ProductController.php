@@ -3,118 +3,86 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Models\Store;
 use App\Models\Category;
+use App\Models\Store;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
-    // Show all products
+    // Display a listing of the products
     public function index()
     {
-        $products = Product::with('store', 'category')->get();
+        $products = Product::all(); // Or use pagination if needed
         return view('products.index', compact('products'));
     }
 
-    // Show form for creating a new product
-    public function create()
-    {
-        $seller = Auth::user()->sellers()->first();
-        if (!$seller) {
-            return redirect()->route('products.index')->with('error', 'You need to have a store to create products.');
-        }
+    // Show the form to create a new product
+    public function create($store_id)
+{
+    $store = Store::findOrFail($store_id);
+    $categories = Category::all();
+    return view('products.create', compact('store_id', 'categories'));
+}
 
-        $categories = Category::all();
-        return view('products.create', compact('categories'));
-    }
 
-    // Store a new product
-    public function store(Request $request)
+    // Store a newly created product
+    public function store(Request $request, $store_id)
     {
-        $request->validate([
+        $validated=$request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric',
             'stock_quantity' => 'required|integer',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => 'required|exists:categories,category_id',
         ]);
+        
 
-        $seller = Auth::user()->sellers()->first();
-        if (!$seller) {
-            return redirect()->route('products.index')->with('error', 'You need to have a store to create products.');
-        }
+        $store = Store::findOrFail($store_id);
 
-        $store = Store::where('seller_id', $seller->id)->firstOrFail();
+        $store->products()->create($validated);
 
-        Product::create([
-            'name' => $request->name,
-            'description' => $request->description,
-            'price' => $request->price,
-            'stock_quantity' => $request->stock_quantity,
-            'store_id' => $store->id,
-            'category_id' => $request->category_id,
-        ]);
-
-        return redirect()->route('products.index')->with('success', 'Product created successfully.');
+        return redirect()->route('stores.showForOwner', ['id' => $store_id])
+            ->with('success', 'Product created successfully!');
     }
 
     // Display a specific product
-    public function show($id)
+    public function show(Product $product)
     {
-        $product = Product::with('store', 'category')->findOrFail($id);
         return view('products.show', compact('product'));
     }
 
-    // Show form for editing a product
-    public function edit($id)
+    // Show the form to edit a product
+    public function edit(Product $product)
     {
-        $product = Product::findOrFail($id);
-        $categories = Category::all();
-        $seller = Auth::user()->sellers()->first();
-
-        if (!$seller || $product->store->seller_id !== $seller->id) {
-            return redirect()->route('products.index')->with('error', 'You do not have permission to edit this product.');
-        }
+        $categories = Category::all(); // Fetch categories if needed
 
         return view('products.edit', compact('product', 'categories'));
     }
 
-    // Update a product
-    public function update(Request $request, $id)
+    // Update a specific product
+    public function update(Request $request, Product $product)
     {
-        $request->validate([
+        $validated=$request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric',
             'stock_quantity' => 'required|integer',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => 'required|exists:categories,category_id',
         ]);
 
-        $product = Product::findOrFail($id);
-        $seller = Auth::user()->sellers()->first();
+        $product->update($validated);
 
-        if (!$seller || $product->store->seller_id !== $seller->id) {
-            return redirect()->route('products.index')->with('error', 'You do not have permission to update this product.');
-        }
-
-        $product->update($request->only(['name', 'description', 'price', 'stock_quantity', 'category_id']));
-
-        return redirect()->route('products.index')->with('success', 'Product updated successfully.');
+        return redirect()->route('stores.showForOwner', ['id' => $product->store_id])
+            ->with('success', 'Product updated successfully!');
     }
 
-    // Delete a product
-    public function destroy($id)
+    // Remove a specific product
+    public function destroy(Product $product)
     {
-        $product = Product::findOrFail($id);
-        $seller = Auth::user()->sellers()->first();
-
-        if (!$seller || $product->store->seller_id !== $seller->id) {
-            return redirect()->route('products.index')->with('error', 'You do not have permission to delete this product.');
-        }
-
+        $store_id = $product->store_id;
         $product->delete();
 
-        return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
+        return redirect()->route('stores.showForOwner', ['id' => $store_id])
+            ->with('success', 'Product deleted successfully!');
     }
 }

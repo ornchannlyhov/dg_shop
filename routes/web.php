@@ -12,8 +12,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 //login with socailite route
-Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider'])->name('socialite.redirect');
-Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProviderCallback'])->name('socialite.callback');
+Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider'])->name('registerWithGoogle');
+Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProviderCallback'])->name('registerWithGoogle.callback');
 
 //return to dashboard page route
 Route::get('/dashboard', function () {
@@ -32,24 +32,25 @@ Route::middleware('auth')->group(function () {
     Route::get('seller/stores', [SellerController::class, 'showStores'])->name('seller.stores');
 
     // Store Routes
-    Route::get('admin/stores', [StoreController::class, 'showAllForAdmin'])->name('store.index');
-    Route::get('store/create', [StoreController::class, 'create'])->name('store.create');
-    Route::post('store', [StoreController::class, 'store'])->name('store.store');
-    Route::get('store/{id}', [StoreController::class, 'show'])->name('store.show');
-    Route::get('store/{id}/owner', [StoreController::class, 'showForOwner'])->name('store.showForOwner');
-    Route::get('store/{id}/edit', [StoreController::class, 'edit'])->name('store.edit');
-    Route::put('store/{id}', [StoreController::class, 'update'])->name('store.update');
-    Route::delete('store/{id}', [StoreController::class, 'destroy'])->name('store.destroy');
-    Route::get('/products', [ProductController::class, 'index'])->name('product.index');
+    Route::get('admin/stores', [StoreController::class, 'showAllForAdmin'])->name('stores.index');
+    Route::get('store/create', [StoreController::class, 'create'])->name('stores.create');
+    Route::post('store', [StoreController::class, 'store'])->name('stores.store');
+    Route::get('store/{id}', [StoreController::class, 'show'])->name('stores.show');
+    Route::get('store/{id}/owner', [StoreController::class, 'showForOwner'])->name('stores.showForOwner');
+    Route::get('store/{id}/edit', [StoreController::class, 'edit'])->name('stores.edit');
+    Route::put('store/{id}', [StoreController::class, 'update'])->name('stores.update');
+    Route::delete('store/{id}', [StoreController::class, 'destroy'])->name('stores.destroy');
 
-    //product Route
-    Route::get('products', [ProductController::class, 'index'])->name('products.index');
-    Route::get('products/create', [ProductController::class, 'create'])->name('products.create');
-    Route::post('products', [ProductController::class, 'store'])->name('products.store');
-    Route::get('products/{id}', [ProductController::class, 'show'])->name('products.show');
-    Route::get('products/{id}/edit', [ProductController::class, 'edit'])->name('products.edit');
-    Route::put('products/{id}', [ProductController::class, 'update'])->name('products.update');
-    Route::delete('products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
+    //product routes
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('store/{store_id}/products/create', [ProductController::class, 'create'])->name('products.create');
+    Route::post('store/{store_id}/products', [ProductController::class, 'store'])->name('products.store');
+    Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+    Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+    Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+
+
 
 });
 
