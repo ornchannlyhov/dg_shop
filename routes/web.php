@@ -27,3 +27,8 @@ Route::get('/auth/{provider}', [SocialiteController::class, 'redirectToProvider'
 Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProviderCallback'])->name('socialite.callback');
 
 require __DIR__.'/auth.php';
+// Show the login form
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+
+// Handle the login form submission
+Route::post('/login', [AuthController::class, 'login']);
