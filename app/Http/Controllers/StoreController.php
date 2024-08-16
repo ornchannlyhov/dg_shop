@@ -19,16 +19,22 @@ class StoreController extends Controller
     // Show a store for buyers
     public function show($id)
     {
-        $store = Store::findOrFail($id);
+        $store = Store::with('products')->find($id);
+        if (!$store) {
+            abort(404, 'Store not found');
+        }
         return view('stores.show', compact('store'));
     }
 
     // Show a store for the owner (seller view)
     public function showForOwner($id)
     {
-        $seller = Auth::user()->sellers()->first();
-        $store = Store::where('store_id', $id)->first();
-        return view('stores.show_for_owner', compact('store'));
+        $store = Store::findOrFail($id);
+        $seller = Auth::user()->sellers()->where('store_id', $store->store_id)->first();
+        if (!$seller) {
+            abort(403, 'Unauthorized action.');
+        }
+        return view('stores.show-owner', compact('store'));
     }
 
     // Redirect to create store form

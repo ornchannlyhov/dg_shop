@@ -17,7 +17,7 @@ class Seller extends Model
 
     public function store()
     {
-        return $this->hasMany(Store::class, 'seller_id');
+        return $this->hasOne(Store::class, 'seller_id');
     }
     public function users(){
         return $this->belongsTo(User::class);
