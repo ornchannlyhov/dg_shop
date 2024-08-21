@@ -25,5 +25,9 @@ class Order extends Model
     {
         return $this->hasMany(Payment::class);
     }
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
 }
 

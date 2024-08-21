@@ -3,6 +3,9 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SocialiteController;
+use App\Http\Controllers\SellerController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\StoreController;
 Route::get('/', function () {
     return view('welcome');
 });
@@ -29,7 +32,7 @@ Route::middleware('auth')->group(function () {
     // Store Routes
     Route::get('admin/stores', [StoreController::class, 'showAllForAdmin'])->name('stores.index');
     Route::get('store/create', [StoreController::class, 'create'])->name('stores.create');
-    Route::post('store', [StoreController::class, 'store'])->name('stores.store');
+    Route::post('store', [StoreController::class, 'store'])->name('store.store');
     Route::get('store/{id}', [StoreController::class, 'show'])->name('stores.show');
     Route::get('store/{id}/owner', [StoreController::class, 'showForOwner'])->name('stores.showForOwner');
     Route::get('store/{id}/edit', [StoreController::class, 'edit'])->name('stores.edit');

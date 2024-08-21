@@ -32,4 +32,7 @@ class Store extends Model
     {
         return $this->belongsTo(Seller::class, 'seller_id');
     }
+    public function order(){
+        return $this->hasMany(Order::class);
+    }
 }
