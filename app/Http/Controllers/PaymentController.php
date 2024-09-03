@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Order;
+use App\Notifications\OrderPaidNotification;
+use Illuminate\Support\Facades\Notification;
 
 class PaymentController extends Controller
 {
@@ -13,6 +15,7 @@ class PaymentController extends Controller
 
         \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
+        // Create a Checkout Session
         $session = \Stripe\Checkout\Session::create([
             'payment_method_types' => ['card'],
             'line_items' => [[
@@ -39,8 +42,17 @@ class PaymentController extends Controller
         $order->update(['status' => 'paid']);
 
         // Notify seller about the paid order
-        
+        $seller = $order->seller; // Assuming an order has a seller relationship
+        if ($seller) {
+            Notification::send($seller, new OrderPaidNotification($order));
+        }
+
         return redirect()->route('orders.show', $order_id)->with('success', 'Payment successful.');
     }
-}
 
+    public function paymentCancel($order_id)
+    {
+        // Optional: Handle canceled payment here
+        return redirect()->route('orders.show', $order_id)->with('error', 'Payment canceled.');
+    }
+}
