@@ -10,6 +10,14 @@ use App\Models\OrderItem;
 class OrderController extends Controller
 {
     // Checkout process for a specific cart
+    public function index()
+    {
+        // Fetch all orders (or add any specific logic you need)
+        $orders = Order::all(); 
+
+        // Return the view with orders data
+        return view('orders.index', compact('orders'));
+    }
     public function checkout($cart_id)
     {
         $cart = Cart::with('items.product')->findOrFail($cart_id);
@@ -17,13 +25,13 @@ class OrderController extends Controller
         $order = Order::create([
             'user_id' => auth()->id(),
             'store_id' => $cart->store_id,
-            'total_amount' => $cart->items->sum(function($item) {
+            'total_amount' => $cart->cartItems->sum(function($item) {
                 return $item->product->price * $item->quantity;
             }),
             'status' => 'pending',
         ]);
 
-        foreach ($cart->items as $item) {
+        foreach ($cart->cartItems as $item) {
             OrderItem::create([
                 'order_id' => $order->id,
                 'product_id' => $item->product_id,

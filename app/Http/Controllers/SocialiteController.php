@@ -43,7 +43,7 @@ class SocialiteController extends Controller
                 Auth::login($user);
             }
             
-            return redirect()->intended('/dashboard');
+            return redirect()->intended('/products');
             
         } catch (\Exception $e) {
             return redirect('/login')->withErrors(['error' => 'Something went wrong']);

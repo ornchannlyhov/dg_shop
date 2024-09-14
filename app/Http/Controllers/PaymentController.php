@@ -41,8 +41,7 @@ class PaymentController extends Controller
         $order = Order::findOrFail($order_id);
         $order->update(['status' => 'paid']);
 
-        // Notify seller about the paid order
-        $seller = $order->seller; // Assuming an order has a seller relationship
+        $seller = $order->seller; 
         if ($seller) {
             Notification::send($seller, new OrderPaidNotification($order));
         }
@@ -52,7 +51,6 @@ class PaymentController extends Controller
 
     public function paymentCancel($order_id)
     {
-        // Optional: Handle canceled payment here
         return redirect()->route('orders.show', $order_id)->with('error', 'Payment canceled.');
     }
 }

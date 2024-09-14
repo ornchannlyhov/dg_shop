@@ -42,6 +42,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Seller::class, 'user_id');
     }
+    public function hasStore()
+    {
+        return $this->sellers()->exists();
+    }
 
     /**
      * Get the attributes that should be cast.

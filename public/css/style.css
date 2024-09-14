@@ -1,0 +1,244 @@
+
+.carousel-container {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    overflow: hidden;
+    color: white;
+
+}
+
+.carousel-inner {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    height: 100%;
+}
+
+.carousel-item {
+    min-width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.carousel-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 10px; 
+    font-size: 1rem; 
+}
+
+.carousel-overlay button {
+    width: 12%; 
+    padding: 10px 20px; 
+    font-size: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .carousel-overlay {
+        font-size: 0.9rem;
+    }
+
+    .carousel-overlay button {
+        width: 40%; 
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .carousel-overlay {
+        font-size: 0.8rem; 
+        padding: 5px;
+    }
+
+    .carousel-overlay button {
+        width: 50%; 
+        font-size: 0.8rem;
+    }
+}
+
+.carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.carousel-control.left {
+    left: 10px;
+}
+
+.carousel-control.right {
+    right: 10px;
+}
+
+.section {
+    margin-bottom: 40px;
+    color: white;
+
+}
+
+.section h1 {
+    font-size: 1.75rem;
+    margin-bottom: 20px;
+}
+
+/* Responsive adjustments for section headings */
+@media (max-width: 768px) {
+    .section h1 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .section h1 {
+        font-size: 1.25rem;
+    }
+}
+
+.product-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.product-card {
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #3f3f46;
+}
+
+/* Responsive adjustments for product cards */
+@media (min-width: 1024px) {
+    .product-card {
+        max-width: calc(20% - 16px);
+    }
+}
+
+@media (max-width: 1023px) {
+    .product-card {
+        max-width: calc(50% - 16px);
+    }
+}
+
+@media (max-width: 640px) {
+    .product-card {
+        max-width: calc(50% - 16px);
+    }
+}
+
+.product-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.product-card .content {
+    padding: 16px;
+}
+
+.product-card .content h2 {
+    font-size: 1.125rem;
+    margin-bottom: 8px;
+}
+
+.product-card .content p {
+    font-size: 0.75rem;
+    margin-bottom: 8px;
+}
+
+.product-card .content .price {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.product-card .content .actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+    .product-card .content h2 {
+        font-size: 1rem;
+    }
+}
+
+/* Floating cart button */
+.floating-cart {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #3490dc;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 50px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background 0.3s ease;
+}
+
+.floating-cart:hover {
+    background-color: #2779bd;
+}
+
+.floating-cart .cart-icon {
+    font-size: 1.5rem;
+    margin-right: 8px;
+}
+
+.floating-cart .cart-count {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Custom button styles */
+.custom-button {
+    background-color:#22c55e;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+}
+
+.custom-button:hover {
+    background-color: #0056b3;
+}
+
+.custom-button:focus {
+    outline: none;
+}
