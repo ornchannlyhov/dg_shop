@@ -3,7 +3,6 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SocialiteController;
-use App\Http\Controllers\SellerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\OrderController;
@@ -34,9 +33,6 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Seller Routes
-    Route::get('seller/dashboard', [SellerController::class, 'index'])->name('seller.dashboard');
-
     // Store Routes
     Route::get('admin/stores', [StoreController::class, 'showAllForAdmin'])->name('stores.index');
     Route::get('store/create', [StoreController::class, 'create'])->name('stores.create');
@@ -46,6 +42,8 @@ Route::middleware('auth')->group(function () {
     Route::get('store/{id}/edit', [StoreController::class, 'edit'])->name('stores.edit');
     Route::put('store/{id}', [StoreController::class, 'update'])->name('stores.update');
     Route::delete('store/{id}', [StoreController::class, 'destroy'])->name('stores.destroy');
+    Route::get('redirect-to-store', [StoreController::class, 'redirectToStorePage'])->name('redirect.toStore');
+    Route::get('/stores/{id}/products-listing/{categoryId?}', [StoreController::class, 'productsListing'])->name('stores.products-listing');
 
     //product routes
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
@@ -57,7 +55,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 
     // Cart Routes
-
     Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.add');
     Route::get('/carts', [CartController::class, 'viewCarts'])->name('carts.view');
     Route::get('/cart/{cart_id}', [CartController::class, 'reviewCart'])->name('cart.review');

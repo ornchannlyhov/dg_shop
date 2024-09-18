@@ -9,40 +9,52 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    // Display a listing of the products
+    // Display listing of the products
     public function index()
     {
         $products = Product::all();
         return view('products.index', compact('products'));
     }
-
     // Show the form to create a new product
     public function create($store_id)
-{
-    $store = Store::findOrFail($store_id);
-    $categories = Category::all();
-    return view('products.create', compact('store_id', 'categories'));
-}
+    {
+        $store = Store::findOrFail($store_id);
+        $categories = Category::all();
+        return view('products.create', compact('store_id', 'categories'));
+    }
 
 
     // Store a newly created product
     public function store(Request $request, $store_id)
     {
-        $validated=$request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric',
             'stock_quantity' => 'required|integer',
-            'category_id' => 'required|exists:categories,category_id',
+            'category_id' => 'nullable|exists:categories,category_id',
+            'new_category' => 'nullable|string|max:255',
         ]);
-        
+
+        if ($request->filled('new_category')) {
+            // Create a new category
+            $category = Category::create([
+                'name' => $request->input('new_category'),
+            ]);
+
+            $validated['category_id'] = $category->category_id;
+        }
+
+        if (!$request->filled('new_category') && !$request->filled('category_id')) {
+            return redirect()->back()->withErrors(['category_id' => 'Please select a category or add a new one.']);
+        }
 
         $store = Store::findOrFail($store_id);
 
         $store->products()->create($validated);
 
-        return redirect()->route('stores.showForOwner', ['id' => $store_id])
-            ->with('success', 'Product created successfully!');
+        return redirect()->route('stores.products-listing', ['id' => $store_id])
+            ->with('success', 'Product and category created successfully!');
     }
 
     // Display a specific product
@@ -54,7 +66,7 @@ class ProductController extends Controller
     // Show the form to edit a product
     public function edit(Product $product)
     {
-        $categories = Category::all(); // Fetch categories if needed
+        $categories = Category::all();
 
         return view('products.edit', compact('product', 'categories'));
     }
@@ -62,7 +74,7 @@ class ProductController extends Controller
     // Update a specific product
     public function update(Request $request, Product $product)
     {
-        $validated=$request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric',
@@ -72,7 +84,7 @@ class ProductController extends Controller
 
         $product->update($validated);
 
-        return redirect()->route('stores.showForOwner', ['id' => $product->store_id])
+        return redirect()->route('stores.products-listing', ['id' => $product->store_id])
             ->with('success', 'Product updated successfully!');
     }
 
@@ -82,7 +94,7 @@ class ProductController extends Controller
         $store_id = $product->store_id;
         $product->delete();
 
-        return redirect()->route('stores.showForOwner', ['id' => $store_id])
+        return redirect()->route('stores.products-listing', ['id' => $store_id])
             ->with('success', 'Product deleted successfully!');
     }
 }

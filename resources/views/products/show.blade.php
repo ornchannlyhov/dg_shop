@@ -9,6 +9,7 @@
             <p class="mt-2">Stock Quantity: {{ $product->stock_quantity }}</p>
         </div>
 
-        <a href="{{ route('stores.showForOwner',['id'=>$product->store_id]) }}" class="text-blue-500 hover:underline mt-6 block">Back to Store</a>
+        <button onclick="event.preventDefault(); addToCart({{ $product->id }});" class="custom-button">Add to Cart</button>
+
     </div>
 </x-guest-layout>

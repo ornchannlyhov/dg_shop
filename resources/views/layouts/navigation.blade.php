@@ -28,10 +28,9 @@
                         <i class="fas fa-home mr-2"></i> {{ __('Home') }}
                     </x-nav-link>
                     <!-- Empty href for My Stores -->
-                    <x-nav-link :href="route('stores.showForOwner', ['id' => $store->store_id])" :active="false">
-    <i class="fas fa-store mr-2"></i> {{ __('My Stores') }}
-</x-nav-link>
-
+                    <x-nav-link :href="route('redirect.toStore')" :active="false">
+                        <i class="fas fa-store mr-2"></i> {{ __('My Stores') }}
+                    </x-nav-link>
                     <!-- Empty href for Orders -->
                     <x-nav-link :href="''" :active="false">
                         <i class="fas fa-box mr-2"></i> {{ __('Orders') }}
@@ -95,7 +94,7 @@
                 <i class="fas fa-home mr-2"></i> {{ __('Home') }}
             </x-responsive-nav-link>
             <!-- Empty href for My Stores -->
-            <x-responsive-nav-link :href="''" :active="false">
+            <x-responsive-nav-link :href="route('redirect.toStore')" :active="false">
                 <i class="fas fa-store mr-2"></i> {{ __('My Stores') }}
             </x-responsive-nav-link>
             <!-- Empty href for Orders -->
