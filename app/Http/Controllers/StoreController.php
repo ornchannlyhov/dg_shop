@@ -38,7 +38,6 @@ class StoreController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // Existing calculations
         $totalSales = DB::table('orders')
             ->join('order_items', 'orders.order_id', '=', 'order_items.order_id')
             ->join('products', 'order_items.product_id', '=', 'products.product_id')
@@ -111,12 +110,10 @@ class StoreController extends Controller
                 'label' => $month->format('F Y')
             ];
         }
-
         $weeksLabels = array_map(fn($week) => $week['start'] . ' to ' . $week['end'], $weeks);
 
         return view('stores.owner-dashboard', compact('store', 'totalSales', 'mostSoldProduct', 'pendingOrders', 'profit', 'leastSoldProduct', 'weeks', 'salesData', 'monthsOptions', 'weeksLabels'));
     }
-
     // fecth product and category for product listing in a store
     public function productsListing(Request $request, $id, $categoryId = null)
     {
@@ -210,22 +207,34 @@ class StoreController extends Controller
         $request->validate([
             'store_name' => 'required|string|max:255',
             'store_description' => 'nullable|string',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $store = Store::findOrFail($id);
-        $store->update($request->all());
 
-        return redirect()->route('stores.owner-dashboard')->with('success', 'Store updated successfully.');
+        // Check and handle logo upload
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('logos', 'public');
+            $store->logo = $logoPath;
+        }
+
+        // Update store details
+        $store->store_name = $request->store_name;
+        $store->store_description = $request->store_description;
+        $store->save();
+
+        return redirect()->route('stores.edit', $store->store_id)
+            ->with('success', 'Store updated successfully.');
     }
 
     // Delete a store
     public function destroy($id)
     {
         $store = Store::findOrFail($id);
+        $store->products()->delete();
         $store->delete();
 
-        return redirect()->route('stores.index')->with('success', 'Store deleted successfully.');
+        return redirect()->route('products.index')->with('success', 'Store deleted successfully.');
     }
     public function redirectToStorePage()
     {

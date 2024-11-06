@@ -3,82 +3,87 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Product;
-use App\Models\CartItem;
 use App\Models\Cart;
-use App\Models\Order;
-use App\Models\OrderItem;
-use Illuminate\Support\Facades\DB;
-
+use App\Models\CartItem;
+use App\Models\Product;
 class CartController extends Controller
 {
-    // Add product to a specific store's cart
-    public function addToCart(Request $request)
+    public function addToCart(Request $request, $productId)
     {
-        $product_id = $request->input('product_id');
-        $product = Product::findOrFail($product_id);
-        $store_id = $product->store_id;
-
-        $cart = Cart::firstOrCreate([
-            'user_id' => auth()->id(),
-            'store_id' => $store_id,
+        $request->validate([
+            'quantity' => 'integer|min:1'
         ]);
 
-        CartItem::updateOrCreate(
-            ['cart_id' => $cart->id, 'product_id' => $product_id],
-            ['quantity' => DB::raw('quantity + ' . $request->input('quantity', 1))]
-        );
+        try {
+            $product = Product::findOrFail($productId);
+            $store = $product->store;
 
-        // Get the updated cart count
-        $cartCount = CartItem::where('cart_id', $cart->id)->sum('quantity');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Product added to cart.',
-            'cartCount' => $cartCount
-        ]);
-    }
-
-
-    // View all carts
-    public function viewCarts()
-    {
-        $carts = Cart::with('cartItems.product')->where('user_id', auth()->id())->get();
-        return view('carts', compact('carts'));
-    }
-
-    // Review a specific cart
-    public function reviewCart($cart_id)
-    {
-        $cart = Cart::with('cartItems.product')->findOrFail($cart_id);
-        return view('cart-review', compact('cart'));
-    }
-
-    // Checkout a specific cart
-    public function checkout($cart_id)
-    {
-        $cart = Cart::with('cartItems.product')->findOrFail($cart_id);
-        $order = Order::create([
-            'user_id' => auth()->id(),
-            'store_id' => $cart->store_id,
-            'total_amount' => $cart->cartItems->sum(function ($item) {
-                return $item->product->price * $item->quantity;
-            }),
-            'status' => 'pending',
-        ]);
-
-        foreach ($cart->cartItems as $item) {
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $item->product_id,
-                'quantity' => $item->quantity,
-                'price' => $item->product->price,
+            $cart = Cart::firstOrCreate([
+                'store_id' => $store->store_id,
+                'user_id' => auth()->id()
             ]);
+
+            $cartItem = CartItem::where('cart_id', $cart->cart_id)
+                ->where('product_id', $productId)
+                ->first();
+
+            if ($cartItem) {
+                $cartItem->quantity += $request->input('quantity', 1);
+                $cartItem->save();
+            } else {
+                CartItem::create([
+                    'cart_id' => $cart->cart_id,
+                    'product_id' => $productId,
+                    'quantity' => $request->input('quantity', 1)
+                ]);
+            }
+
+            $cartCount = CartItem::where('cart_id', $cart->cart_id)->sum('quantity');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product added to cart',
+                'cartCount' => $cartCount
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to add product to cart'], 500);
+        }
+    }
+    public function update(Request $request, $productId)
+    {
+        $change = $request->input('change');
+        $userId = auth()->id();
+
+        $storeId = Product::findOrFail($productId)->store->store_id;
+
+        $cart = Cart::where('user_id', $userId)
+            ->where('store_id', $storeId)
+            ->first();
+
+        if (!$cart) {
+            return response()->json(['success' => false, 'message' => 'Cart not found.']);
         }
 
-        // Clear the cart after checkout
-        $cart->cartItems()->delete();
+        $cartItem = $cart->items()->where('product_id', $productId)->first();
 
-        return redirect()->route('payment.initiate', ['order' => $order->id]);
+        if ($cartItem) {
+            $cartItem->quantity += $change;
+
+            if ($cartItem->quantity <= 0) {
+                $cartItem->delete();
+            } else {
+                $cartItem->save();
+            }
+
+            return response()->json(['success' => true, 'message' => 'Cart item updated.']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Cart item not found.']);
+        }
+    }
+
+    public function getCartItems()
+    {
+        $cart = Cart::where('user_id', auth()->id())->with('items.product')->first();
+        return response()->json(['items' => $cart->items]);
     }
 }

@@ -37,16 +37,21 @@ class ProductController extends Controller
         ]);
 
         if ($request->filled('new_category')) {
-            // Create a new category
-            $category = Category::create([
-                'name' => $request->input('new_category'),
-            ]);
+            $category = Category::where('name', $request->input('new_category'))->first();
 
-            $validated['category_id'] = $category->category_id;
+            if ($category) {
+                $validated['category_id'] = $category->category_id;
+            } else {
+                $category = Category::create([
+                    'name' => $request->input('new_category'),
+                ]);
+
+                $validated['category_id'] = $category->category_id;
+            }
         }
 
         if (!$request->filled('new_category') && !$request->filled('category_id')) {
-            return redirect()->back()->withErrors(['category_id' => 'Please select a category or add a new one.']);
+            return redirect()->back()->withErrors(['category_id' => 'Please select a category or add a new one.'])->withInput();
         }
 
         $store = Store::findOrFail($store_id);
@@ -56,6 +61,7 @@ class ProductController extends Controller
         return redirect()->route('stores.products-listing', ['id' => $store_id])
             ->with('success', 'Product and category created successfully!');
     }
+
 
     // Display a specific product
     public function show(Product $product)
@@ -97,4 +103,30 @@ class ProductController extends Controller
         return redirect()->route('stores.products-listing', ['id' => $store_id])
             ->with('success', 'Product deleted successfully!');
     }
+
+    public function search(Request $request)
+    {
+        $query = Product::query();
+        $selectedCategory = null; 
+    
+        if ($request->has('search') && !empty($request->input('search'))) {
+            $search = $request->input('search');
+            $query->where('name', 'like', "%{$search}%");
+        }
+    
+        if ($request->has('categoryId')) {
+            $selectedCategory = Category::find($request->input('categoryId'));
+            $query->where('category_id', $selectedCategory ? $selectedCategory->id : null);
+        }
+    
+        $products = $query->paginate(10);
+    
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('layouts.navigation', compact('products', 'selectedCategory'))->render(),
+            ]);
+        }
+    
+    }
+    
 }

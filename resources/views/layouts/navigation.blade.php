@@ -1,3 +1,46 @@
+<style>
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5); /* Black w/ opacity */
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 600px;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header, .modal-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .close-button {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .modal-body {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+</style>
+
 <nav x-data="{ open: false }" class="bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-gray-700">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -12,9 +55,11 @@
 
                 <!-- Search Bar -->
                 <div class="flex-grow mx-4 ml-2">
-                    <form action="#" method="GET" class="relative flex items-center">
-                        <input type="text" name="search" placeholder="Search..." class="block w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-zinc-500 text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600">
-                        <button type="submit" class="ml-2 flex items-center text-gray-400 dark:text-gray-500 p-2 rounded-md dark:bg-gray-700">
+                    <form id="searchForm" method="GET" class="relative flex items-center">
+                        <input id="searchInput" type="text" name="search" placeholder="Search..." 
+                            class="block w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-zinc-500 text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600">
+                        
+                        <button id="searchButton" type="button" class="ml-2 flex items-center text-gray-400 dark:text-gray-500 p-2 rounded-md dark:bg-gray-700">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a7 7 0 100 14 7 7 0 000-14zM21 21l-4.35-4.35" />
                             </svg>
@@ -27,15 +72,12 @@
                     <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')">
                         <i class="fas fa-home mr-2"></i> {{ __('Home') }}
                     </x-nav-link>
-                    <!-- Empty href for My Stores -->
                     <x-nav-link :href="route('redirect.toStore')" :active="false">
                         <i class="fas fa-store mr-2"></i> {{ __('My Stores') }}
                     </x-nav-link>
-                    <!-- Empty href for Orders -->
                     <x-nav-link :href="''" :active="false">
                         <i class="fas fa-box mr-2"></i> {{ __('Orders') }}
                     </x-nav-link>
-                    <!-- Empty href for Cart -->
                     <x-nav-link :href="''" :active="false">
                         <i class="fas fa-shopping-cart mr-2"></i> {{ __('Cart') }}
                     </x-nav-link>
@@ -93,15 +135,12 @@
             <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.index')">
                 <i class="fas fa-home mr-2"></i> {{ __('Home') }}
             </x-responsive-nav-link>
-            <!-- Empty href for My Stores -->
             <x-responsive-nav-link :href="route('redirect.toStore')" :active="false">
                 <i class="fas fa-store mr-2"></i> {{ __('My Stores') }}
             </x-responsive-nav-link>
-            <!-- Empty href for Orders -->
             <x-responsive-nav-link :href="''" :active="false">
                 <i class="fas fa-box mr-2"></i> {{ __('Orders') }}
             </x-responsive-nav-link>
-            <!-- Empty href for Cart -->
             <x-responsive-nav-link :href="''" :active="false">
                 <i class="fas fa-shopping-cart mr-2"></i> {{ __('Cart') }}
             </x-responsive-nav-link>
@@ -131,4 +170,52 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal -->
+    <div id="searchModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Search Results</h2>
+                <button class="close-button" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="searchResults"></div>
+            <div class="modal-footer">
+                <button class="close-button" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
 </nav>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#searchButton').on('click', function() {
+            var searchKeyword = $('#searchInput').val().trim();
+
+            if (searchKeyword.length > 1) {
+                $.ajax({
+                    url: "{{ route('products.search') }}",
+                    method: 'GET',
+                    data: {
+                        search: searchKeyword,
+                        category_id: {{ isset($selectedCategory) ? $selectedCategory->id : 'null' }}
+                    },
+                    success: function(response) {
+                        $('#searchResults').html(response.html); 
+                        $('#searchModal').css('display', 'block');
+                    },
+                    error: function() {
+                        console.log('Error fetching data.');
+                    }
+                });
+            }
+        });
+
+        // Function to close the modal
+        function closeModal() {
+            $('#searchModal').css('display', 'none');
+        }
+
+        window.closeModal = closeModal;
+    });
+</script>

@@ -6,41 +6,7 @@
     <title>Edit Product</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            color: #f5f5f5;
-            background-color: #27272a;
-        }
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            padding: 1.5rem;
-            background-color: #1f1f1f;
-            border-radius: 0.5rem;
-        }
-        .form-label {
-            color: #e0e0e0;
-        }
-        .form-control, .form-select {
-            background-color: #2d2d2d;
-            color: #f5f5f5;
-            border: 1px solid #6c757d;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
-        }
-        .btn-save {
-            background-color: #28a745;
-            color: #fff;
-        }
-        .btn-save:hover {
-            background-color: #218838;
-        }
-        .text-danger {
-            color: #dc3545;
-        }
-    </style>
+    <link href="{{ asset(path: 'css/form.css') }}" rel="stylesheet">
 </head>
 <body>
     <div class="container mx-auto p-6">

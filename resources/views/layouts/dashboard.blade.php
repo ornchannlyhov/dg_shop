@@ -12,10 +12,13 @@
 
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jquery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- bs style-->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- bs script -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         a {
             text-decoration: none;
@@ -51,7 +54,7 @@
                     <i class="fas fa-box-open text-green-500"></i>
                     <span class="ml-3">Products</span>
                 </a>
-                <a href="{{ route('') }}"
+                <a
                     class="flex items-center py-2 px-4 text-white hover:bg-gray-700">
                     <i class="fa-solid fa-file text-green-500"></i>
                     <span class="ml-4">Order Request</span>

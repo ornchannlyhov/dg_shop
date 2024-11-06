@@ -18,7 +18,6 @@ class Product extends Model
         return $this->belongsTo(Store::class, 'store_id');
     }
 
-    // Define the relationship with the Category model
     public function category()
     {
         return $this->belongsTo(Category::class, 'category_id');

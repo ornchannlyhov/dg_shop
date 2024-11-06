@@ -3,6 +3,7 @@
 @section('title', 'Product List')
 
 @section('content')
+
 <div class="p-6 min-h-screen">
     <!-- Category Section -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
@@ -96,20 +97,18 @@
 
         <!-- Modal -->
         <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content mt-20 w-52">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content mx-auto" style="max-width: 90%; width: 700px;">
                     <div class="modal-header mt-0" style="background-color: #27272a; border:none;">
                         <button type="button" class="btn-close bg-white" data-bs-dismiss="modal"
                             aria-label="Close"></button>
                     </div>
                     <div class="modal-body" style="background-color: #27272a;">
-                        <!-- Form content will be loaded dynamically -->
+                        <!-- dynamically -->
                     </div>
                 </div>
             </div>
         </div>
-
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script>
             $(document).ready(function () {
                 // Handle the "Add Product" button click

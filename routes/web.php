@@ -9,6 +9,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\CartItemController;
 
 //Gusess route
 Route::get('/', function () {
@@ -53,27 +54,31 @@ Route::middleware('auth')->group(function () {
     Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
-
-    // Cart Routes
-    Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.add');
-    Route::get('/carts', [CartController::class, 'viewCarts'])->name('carts.view');
-    Route::get('/cart/{cart_id}', [CartController::class, 'reviewCart'])->name('cart.review');
-    Route::post('/checkout/{cart_id}', [CartController::class, 'checkout'])->name('cart.checkout');
-
+    Route::get('/search', [ProductController::class, 'search'])->name('products.search');
 
     // Order Routes
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::post('/checkout/{cart_id}', [OrderController::class, 'checkout'])->name('checkout');
 
-    // Payment Routes
-    Route::get('/payment/initiate/{order}', [PaymentController::class, 'initiatePayment'])->name('payment.initiate');
-    Route::get('/payment/success/{order}', [PaymentController::class, 'paymentSuccess'])->name('payment.success');
-    Route::get('/payment/cancel/{order}', [PaymentController::class, 'paymentCancel'])->name('payment.cancel');
+    // Cart routes
+    Route::post('/cart/add/{productId}', [CartController::class, 'addToCart'])->name('cart.add');
+    Route::get('/cart', [CartController::class, 'viewCart'])->name('cart.view');
+    Route::get('/cart/items', [CartController::class, 'getCartItems']);
+    Route::post('/cart/update/{productId}', [CartController::class, 'update'])->name('cart.update');
+    Route::patch('/cart/item/{cartItemId}', [CartItemController::class, 'update'])->name('cart.item.update');
+    Route::delete('/cart/item/{cartItemId}', [CartItemController::class, 'destroy'])->name('cart.item.destroy');
+
+    // Checkout routes
+    Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
+
+    // Payment routes
+    Route::get('/payment/{order}/initiate', [PaymentController::class, 'initiate'])->name('payment.initiate');
+    Route::get('/payment/{order}/success', [PaymentController::class, 'success'])->name('payment.success');
+    Route::get('/payment/{order}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
 
     // Notification Routes
-    Route::post('/notify-seller/{order_id}', [NotificationController::class, 'notifySeller'])->name('notify.seller');
+    Route::get('/notify-seller/{order_id}', [NotificationController::class, 'notifySeller'])->name('notify.seller');
 
 });
-
 
 require __DIR__ . '/auth.php';

@@ -22,12 +22,11 @@ class NotificationController extends Controller
             // Find the order
             $order = Order::findOrFail($order_id);
 
-            // Find the seller associated with the order
-            $store = $order->store; // Assuming `store` has a relationship with `Order`
-            if ($store && $store->owner) {
-                $seller = $store->owner; // Assuming `owner` is the seller
+            $store = $order->store;
 
-                // Send notification
+            if ($store && $store->seller) {
+                $seller = $store->seller;
+
                 Notification::send($seller, new OrderPaidNotification($order));
 
                 return response()->json(['message' => 'Notification sent successfully.']);

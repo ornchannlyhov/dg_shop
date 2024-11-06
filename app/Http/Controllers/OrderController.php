@@ -6,32 +6,24 @@ use Illuminate\Http\Request;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\OrderPlaced;
 
 class OrderController extends Controller
 {
-    // Checkout process for a specific cart
-    public function index()
+    public function checkout()
     {
-        // Fetch all orders (or add any specific logic you need)
-        $orders = Order::all(); 
-
-        // Return the view with orders data
-        return view('orders.index', compact('orders'));
-    }
-    public function checkout($cart_id)
-    {
-        $cart = Cart::with('items.product')->findOrFail($cart_id);
-
+        $cart = Cart::where('user_id', auth()->id())->with('items.product')->firstOrFail();
         $order = Order::create([
             'user_id' => auth()->id(),
             'store_id' => $cart->store_id,
-            'total_amount' => $cart->cartItems->sum(function($item) {
+            'total_amount' => $cart->items->sum(function($item) {
                 return $item->product->price * $item->quantity;
             }),
             'status' => 'pending',
         ]);
 
-        foreach ($cart->cartItems as $item) {
+        foreach ($cart->items as $item) {
             OrderItem::create([
                 'order_id' => $order->id,
                 'product_id' => $item->product_id,
@@ -41,6 +33,10 @@ class OrderController extends Controller
         }
 
         $cart->items()->delete();
+
+        // Notify the seller
+        $storeOwner = $cart->store->owner;
+        Notification::send($storeOwner, new OrderPlaced($order));
 
         return redirect()->route('payment.initiate', ['order' => $order->id]);
     }
