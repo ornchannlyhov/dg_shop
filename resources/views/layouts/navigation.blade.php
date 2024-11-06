@@ -1,44 +1,30 @@
 <style>
-    .modal {
-        display: none; /* Hidden by default */
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.5); /* Black w/ opacity */
-    }
-
-    .modal-content {
-        background-color: #fefefe;
-        margin: 15% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        max-width: 600px;
-        border-radius: 5px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .modal-header, .modal-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .close-button {
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        cursor: pointer;
-    }
-
-    .modal-body {
-        max-height: 400px;
-        overflow-y: auto;
-    }
+        .custom-modal {
+            display: none;
+            position: fixed;
+            top: 20;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .custom-modal-content {
+            background-color: #fff;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-height: 80%;
+            overflow-y: auto;
+        }
+        .modal-body {
+            max-height: 400px;
+            overflow-y: auto;
+        }
 </style>
 
 <nav x-data="{ open: false }" class="bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-gray-700">
@@ -57,9 +43,9 @@
                 <div class="flex-grow mx-4 ml-2">
                     <form id="searchForm" method="GET" class="relative flex items-center">
                         <input id="searchInput" type="text" name="search" placeholder="Search..." 
-                            class="block w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-zinc-500 text-gray-900 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600">
+                            class="form-control rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-zinc-500 text-gray-900 dark:text-gray-200">
                         
-                        <button id="searchButton" type="button" class="ml-2 flex items-center text-gray-400 dark:text-gray-500 p-2 rounded-md dark:bg-gray-700">
+                        <button id="searchButton" type="button" class="btn btn-secondary ml-2 text-white">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a7 7 0 100 14 7 7 0 000-14zM21 21l-4.35-4.35" />
                             </svg>
@@ -172,25 +158,34 @@
     </div>
 
     <!-- Modal -->
-    <div id="searchModal" class="modal">
-        <div class="modal-content">
+        <div class="custom-modal" id="searchModal">
+        <div class="custom-modal-content">
             <div class="modal-header">
-                <h2>Search Results</h2>
-                <button class="close-button" onclick="closeModal()">&times;</button>
+                <h5 class="modal-title">Search Results</h5>
+                <button type="button" class="close" id="closeModal">
+                    <span>&times;</span>
+                </button>
             </div>
-            <div class="modal-body" id="searchResults"></div>
-            <div class="modal-footer">
-                <button class="close-button" onclick="closeModal()">Close</button>
+            <div class="modal-body" id="searchResults">
             </div>
         </div>
     </div>
 </nav>
 
+<!-- jQuery and Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
-        $('#searchButton').on('click', function() {
-            var searchKeyword = $('#searchInput').val().trim();
+        const searchModal = $('#searchModal');
+
+        // Show modal when the search input is clicked
+        $('#searchInput').on('focus', function() {
+            searchModal.show();
+        });
+
+        // Fetch results as user types
+        $('#searchInput').on('input', function() {
+            const searchKeyword = $(this).val().trim();
 
             if (searchKeyword.length > 1) {
                 $.ajax({
@@ -198,24 +193,50 @@
                     method: 'GET',
                     data: {
                         search: searchKeyword,
-                        category_id: {{ isset($selectedCategory) ? $selectedCategory->id : 'null' }}
+                        categoryId: {{ isset($selectedCategory) ? $selectedCategory->id : 'null' }}
                     },
                     success: function(response) {
-                        $('#searchResults').html(response.html); 
-                        $('#searchModal').css('display', 'block');
+                        let resultsHtml = '';
+
+                        if (response.products && response.products.length > 0) {
+                            response.products.forEach(product => {
+                                resultsHtml += `
+                                    <div class="search-result-item">
+                                        <a href="/products/${product.id}" class="d-flex align-items-center">
+                                            <img src="${product.image_url}" alt="${product.name}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;">
+                                            <span>${product.name}</span>
+                                        </a>
+                                    </div>
+                                    <hr>
+                                `;
+                            });
+                        } else {
+                            resultsHtml = '<p class="text-muted">No results found.</p>';
+                        }
+
+                        $('#searchResults').html(resultsHtml); 
                     },
                     error: function() {
-                        console.log('Error fetching data.');
+                        $('#searchResults').html('<p class="text-danger">Error fetching data.</p>');
                     }
                 });
+            } else {
+                $('#searchResults').html('<p class="text-muted">Start typing to see results...</p>');
             }
         });
 
-        // Function to close the modal
-        function closeModal() {
-            $('#searchModal').css('display', 'none');
-        }
+        // Close modal when close button is clicked
+        $('#closeModal').on('click', function() {
+            searchModal.hide();
+        });
 
-        window.closeModal = closeModal;
+        // Close modal when clicking outside the modal content
+        $(window).on('click', function(event) {
+            if ($(event.target).is(searchModal)) {
+                searchModal.hide();
+            }
+        });
     });
 </script>
+
+

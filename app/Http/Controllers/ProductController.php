@@ -107,26 +107,25 @@ class ProductController extends Controller
     public function search(Request $request)
     {
         $query = Product::query();
-        $selectedCategory = null; 
-    
-        if ($request->has('search') && !empty($request->input('search'))) {
+
+        if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where('name', 'like', "%{$search}%");
         }
-    
-        if ($request->has('categoryId')) {
+
+        if ($request->filled('categoryId')) {
             $selectedCategory = Category::find($request->input('categoryId'));
-            $query->where('category_id', $selectedCategory ? $selectedCategory->id : null);
+            if ($selectedCategory) {
+                $query->where('category_id', $selectedCategory->id);
+            }
         }
-    
-        $products = $query->paginate(10);
-    
-        if ($request->ajax()) {
-            return response()->json([
-                'html' => view('layouts.navigation', compact('products', 'selectedCategory'))->render(),
-            ]);
-        }
-    
+
+        $products = $query->get();
+
+        return response()->json([
+            'products' => $products
+        ]);
     }
-    
+
+
 }

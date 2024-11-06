@@ -104,50 +104,65 @@
                             aria-label="Close"></button>
                     </div>
                     <div class="modal-body" style="background-color: #27272a;">
-                        <!-- dynamically -->
+                        <!-- dynamically loaded content here -->
                     </div>
                 </div>
             </div>
         </div>
-        <script>
-            $(document).ready(function () {
-                // Handle the "Add Product" button click
-                $('a[data-action="add-product"]').on('click', function (e) {
-                    e.preventDefault();
-                    $('#productModal .modal-body').load($(this).attr('href'), function () {
-                        $('#productModal').modal('show');
-                    });
-                });
+    </div>
 
-                // Handle the "Edit" button click
+    <script>
+        $(document).ready(function () {
+            // Handle the "Add Product" button click
+            $('a[data-action="add-product"]').on('click', function (e) {
+                e.preventDefault();
+                $('#productModal .modal-body').load($(this).attr('href'), function () {
+                    $('#productModal').modal('show');
+                });
+            });
+
+            // Handle the "Edit" button click
+            $('a[data-action="edit-product"]').on('click', function (e) {
+                e.preventDefault();
+                $('#productModal .modal-body').load($(this).data('href'), function () {
+                    $('#productModal').modal('show');
+                });
+            });
+
+            // Handle real-time search
+            $('#searchInput').on('input', function () {
+                var searchKeyword = $(this).val();
+                $.ajax({
+                    url: "{{ route('stores.products-listing', ['id' => $store->store_id]) }}",
+                    type: 'GET',
+                    data: {
+                        search: searchKeyword,
+                        @if($selectedCategory)
+                            categoryId: {{ $selectedCategory->category_id }},
+                        @endif
+                    },
+                    success: function (response) {
+                        $('#productTableBody').html($(response).find('#productTableBody').html());
+
+                        bindEditButtons();
+                    },
+                    error: function () {
+                        console.log('Error fetching data.');
+                    }
+                });
+            });
+
+            function bindEditButtons() {
                 $('a[data-action="edit-product"]').on('click', function (e) {
                     e.preventDefault();
                     $('#productModal .modal-body').load($(this).data('href'), function () {
                         $('#productModal').modal('show');
                     });
                 });
+            }
 
-                // Handle real-time search
-                $('#searchInput').on('input', function () {
-                    var searchKeyword = $(this).val();
-                    $.ajax({
-                        url: "{{ route('stores.products-listing', ['id' => $store->store_id]) }}",
-                        type: 'GET',
-                        data: {
-                            search: searchKeyword,
-                            @if($selectedCategory)
-                                categoryId: {{ $selectedCategory->category_id }},
-                            @endif
-                },
-                    success: function (response) {
-                        // Replace the product table body with the new data
-                        $('#productTableBody').html($(response).find('#productTableBody').html());
-                    },
-                    error: function () {
-                        console.log('Error fetching data.');
-                    }
-            });
+            bindEditButtons();
         });
-    });
-        </script>
-        @endsection
+    </script>
+
+@endsection
