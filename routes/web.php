@@ -56,28 +56,19 @@ Route::middleware('auth')->group(function () {
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     Route::get('/search', [ProductController::class, 'search'])->name('products.search');
 
-    // Order Routes
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::post('/checkout/{cart_id}', [OrderController::class, 'checkout'])->name('checkout');
-
     // Cart routes
     Route::post('/cart/add/{productId}', [CartController::class, 'addToCart'])->name('cart.add');
     Route::get('/cart', [CartController::class, 'viewCart'])->name('cart.view');
-    Route::get('/cart/items', [CartController::class, 'getCartItems']);
-    Route::post('/cart/update/{productId}', [CartController::class, 'update'])->name('cart.update');
-    Route::patch('/cart/item/{cartItemId}', [CartItemController::class, 'update'])->name('cart.item.update');
+    Route::put('/cart/update/{cartItemId}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/item/{cartItemId}', [CartItemController::class, 'destroy'])->name('cart.item.destroy');
 
-    // Checkout routes
-    Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
+    // Order Routes
+    Route::post('/order/checkout', [OrderController::class, 'checkout'])->name('order.checkout');
 
     // Payment routes
-    Route::get('/payment/{order}/initiate', [PaymentController::class, 'initiate'])->name('payment.initiate');
-    Route::get('/payment/{order}/success', [PaymentController::class, 'success'])->name('payment.success');
-    Route::get('/payment/{order}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
-
-    // Notification Routes
-    Route::get('/notify-seller/{order_id}', [NotificationController::class, 'notifySeller'])->name('notify.seller');
+    Route::get('/payment/{order_id}/process', [PaymentController::class, 'processPayment'])->name('payment.process');
+    Route::get('/payment/{order_id}/success', [PaymentController::class, 'success'])->name('payment.success');
+    Route::get('/payment/{order_id}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
 
 });
 

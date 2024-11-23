@@ -14,11 +14,6 @@ class User extends Authenticatable
     protected $primaryKey = 'user_id';
     protected $fillable = ['name', 'email', 'password', 'phone_number', 'address','provider', 'provider_id'];
 
-    public function user_role()
-    {
-        return $this->hasMany(UserRole::class);
-    }
-
     public function reviews()
     {
         return $this->hasMany(Review::class);

@@ -8,6 +8,17 @@ use App\Models\CartItem;
 use App\Models\Product;
 class CartController extends Controller
 {
+
+    public function viewCart()
+    {
+        $userId = auth()->id();
+        $carts = Cart::with('items.product')->where('user_id', $userId)->get();
+
+        // return response()->json();
+
+        return view('carts.index', compact('carts'));
+    }
+
     public function addToCart(Request $request, $productId)
     {
         $request->validate([
@@ -49,41 +60,54 @@ class CartController extends Controller
             return response()->json(['success' => false, 'message' => 'Failed to add product to cart'], 500);
         }
     }
-    public function update(Request $request, $productId)
+
+    public function update(Request $request, $cartItemId)
     {
-        $change = $request->input('change');
-        $userId = auth()->id();
+        $cartItem = CartItem::find($cartItemId);
 
-        $storeId = Product::findOrFail($productId)->store->store_id;
-
-        $cart = Cart::where('user_id', $userId)
-            ->where('store_id', $storeId)
-            ->first();
-
-        if (!$cart) {
-            return response()->json(['success' => false, 'message' => 'Cart not found.']);
+        if (!$cartItem) {
+            return response()->json(['success' => false, 'message' => 'Item not found.']);
         }
 
-        $cartItem = $cart->items()->where('product_id', $productId)->first();
+        $change = $request->input('change');
+        $newQuantity = $cartItem->quantity + $change;
 
-        if ($cartItem) {
-            $cartItem->quantity += $change;
+        if ($newQuantity < 1) {
+            $cartItem->delete();
 
-            if ($cartItem->quantity <= 0) {
-                $cartItem->delete();
-            } else {
-                $cartItem->save();
+            $cart = $cartItem->cart;
+            $cartItemCount = CartItem::where('cart_id', $cart->cart_id)->count();
+
+            if ($cartItemCount == 0) {
+                $cart->delete();
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Item removed from cart.',
+                    'removed' => true,
+                    'cartRemoved' => true,
+                    'cartId' => $cart->cart_id
+                ]);
             }
 
-            return response()->json(['success' => true, 'message' => 'Cart item updated.']);
-        } else {
-            return response()->json(['success' => false, 'message' => 'Cart item not found.']);
+            return response()->json([
+                'success' => true,
+                'message' => 'Item removed from cart.',
+                'removed' => true
+            ]);
         }
+
+        $cartItem->quantity = $newQuantity;
+        $cartItem->save();
+
+        $totalPrice = $cartItem->quantity * $cartItem->product->price;
+
+        return response()->json([
+            'success' => true,
+            'quantity' => $cartItem->quantity,
+            'total_price' => $totalPrice,
+            'removed' => false
+        ]);
     }
 
-    public function getCartItems()
-    {
-        $cart = Cart::where('user_id', auth()->id())->with('items.product')->first();
-        return response()->json(['items' => $cart->items]);
-    }
+
 }

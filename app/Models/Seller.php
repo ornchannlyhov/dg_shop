@@ -13,14 +13,18 @@ class Seller extends Model
 
     protected $primaryKey = 'seller_id';
     public $incrementing = true;
-    protected $fillable = ['seller_name', 'seller_email','seller_phoneNumber','user_id','store_id'];
+    protected $fillable = ['seller_name', 'seller_email', 'seller_phoneNumber', 'user_id', 'store_id'];
 
     public function store()
     {
         return $this->hasOne(Store::class, 'seller_id');
     }
-    public function users(){
+    public function users()
+    {
         return $this->belongsTo(User::class);
     }
-    
+    public function routeNotificationFor()
+    {
+        return $this->seller_email;
+    }
 }

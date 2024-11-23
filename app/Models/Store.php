@@ -25,7 +25,7 @@ class Store extends Model
         return $this->hasMany(Product::class, 'store_id');
     }
     
-    public function seller()
+    public function owner()
     {
         return $this->belongsTo(Seller::class, 'seller_id');
     }
