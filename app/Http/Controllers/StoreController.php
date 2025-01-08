@@ -7,9 +7,10 @@ use App\Models\Seller;
 use App\Models\Category;
 use App\Models\Product;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 
 class StoreController extends Controller
 {
@@ -23,50 +24,214 @@ class StoreController extends Controller
     // Show a store for buyers
     public function show($id)
     {
-        $store = Store::with('products')->find($id);
-        if (!$store) {
-            abort(404, 'Store not found');
-        }
+        $store = Store::with('products')->findOrFail($id);
         return view('stores.show', compact('store'));
     }
-    //show store for owner with dashboard 
+
+    // Show store dashboard for owner
     public function showForOwner($id, Request $request)
     {
         $store = Store::findOrFail($id);
         $seller = Auth::user()->sellers()->where('store_id', $store->store_id)->first();
+
         if (!$seller) {
             abort(403, 'Unauthorized action.');
         }
 
-        $totalSales = DB::table('orders')
+        $totalSales = $this->calculateTotalSales($store->store_id);
+        $mostSoldProduct = $this->getMostSoldProduct($store->store_id);
+        $leastSoldProduct = $this->getLeastSoldProduct($store->store_id);
+        $pendingOrders = $this->getPendingOrders($store->store_id);
+
+        [$salesData, $weeksLabels, $monthsOptions] = $this->getSalesData($store->store_id, $request);
+
+        return view('stores.owner-dashboard', compact(
+            'store',
+            'totalSales',
+            'mostSoldProduct',
+            'leastSoldProduct',
+            'pendingOrders',
+            'salesData',
+            'weeksLabels',
+            'monthsOptions'
+        ));
+    }
+
+    // Product listing for a store
+    public function productsListing(Request $request, $id, $categoryId = null)
+    {
+        $store = Store::findOrFail($id);
+
+        $query = Product::where('store_id', $id)->with('category');
+
+        if ($request->filled('search')) {
+            $query->where('name', 'like', "%" . $request->search . "%");
+        }
+
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+
+        $products = $query->paginate(10);
+
+        $categories = Product::where('store_id', $id)
+            ->with('category')
+            ->get()
+            ->groupBy('category_id')
+            ->map(fn($products, $categoryId) => [
+                'category' => Category::find($categoryId),
+                'products' => $products,
+            ])->values();
+
+        $selectedCategory = $categoryId ? Category::find($categoryId) : null;
+
+        if ($request->ajax()) {
+            return view('stores.products-listing', compact('store', 'categories', 'selectedCategory', 'products', 'request'))->render();
+        }
+
+        return view('stores.products-listing', compact('store', 'categories', 'selectedCategory', 'products', 'request'));
+    }
+
+    // Redirect to create store form
+    public function create()
+    {
+        return view('stores.create');
+    }
+
+    // Create store and seller
+    public function store(Request $request)
+    {
+        $user = Auth::user();
+        if ($user->sellers()->whereNotNull('store_id')->exists()) {
+            return back()->with('error', 'You already own a store.');
+        }
+
+        $validated = $request->validate([
+            'store_name' => 'required|string|max:255',
+            'store_description' => 'nullable|string',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($request->hasFile('logo')) {
+            $validated['logo'] = $request->file('logo')->store('logos', 'public');
+        }
+
+        $seller = Seller::create([
+            'seller_name' => $user->name,
+            'seller_email' => $user->email,
+            'phone_number' => $user->phone_number,
+            'user_id' => $user->user_id,
+            'store_id' => null,
+        ]);
+
+        $store = Store::create($validated + ['seller_id' => $seller->seller_id]);
+        $seller->update(['store_id' => $store->store_id]);
+
+        return redirect()->route('stores.showForOwner', $store->store_id)->with('success', 'Store created successfully!');
+    }
+
+    // Edit store form
+    public function edit($id)
+    {
+        $store = Store::findOrFail($id);
+        return view('stores.setting', compact('store'));
+    }
+
+    // Update store
+    public function update(Request $request, $id)
+    {
+        $store = Store::findOrFail($id);
+
+        $validated = $request->validate([
+            'store_name' => 'required|string|max:255',
+            'store_description' => 'nullable|string',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($request->hasFile('logo')) {
+            if ($store->logo) {
+                Storage::disk('public')->delete($store->logo);
+            }
+            $validated['logo'] = $request->file('logo')->store('logos', 'public');
+        }
+
+        $store->update($validated);
+
+        return redirect()->route('stores.edit', $store->store_id)->with('success', 'Store updated successfully.');
+    }
+
+    // Delete store
+    public function destroy($id)
+    {
+        $store = Store::findOrFail($id);
+
+        if ($store->logo) {
+            Storage::disk('public')->delete($store->logo);
+        }
+
+        $store->products()->delete();
+        $store->delete();
+
+        return redirect()->route('products.index')->with('success', 'Store deleted successfully.');
+    }
+
+    // Redirect to store page
+    public function redirectToStorePage()
+    {
+        $store = Auth::user()->sellers()->whereNotNull('store_id')->first();
+
+        if ($store) {
+            return redirect()->route('stores.showForOwner', $store->store_id);
+        }
+
+        return redirect()->route('stores.create')->with('info', 'Please create a store to proceed.');
+    }
+
+    // Helper functions for calculations
+    private function calculateTotalSales($storeId)
+    {
+        return DB::table('orders')
             ->join('order_items', 'orders.order_id', '=', 'order_items.order_id')
             ->join('products', 'order_items.product_id', '=', 'products.product_id')
-            ->where('products.store_id', $store->store_id)
+            ->where('products.store_id', $storeId)
             ->where('orders.status', 'shipped')
             ->sum('orders.total_amount');
+    }
 
-        $mostSoldProduct = DB::table('order_items')
+    private function getMostSoldProduct($storeId)
+    {
+        return DB::table('order_items')
             ->join('products', 'order_items.product_id', '=', 'products.product_id')
-            ->where('products.store_id', $store->store_id)
+            ->where('products.store_id', $storeId)
             ->select('products.product_id', 'products.name', DB::raw('SUM(order_items.quantity) as total_quantity'))
             ->groupBy('products.product_id', 'products.name')
-            ->orderBy('total_quantity', 'DESC')
+            ->orderByDesc('total_quantity')
             ->first();
+    }
 
-        $pendingOrders = DB::table('orders')
+    private function getLeastSoldProduct($storeId)
+    {
+        return DB::table('order_items')
+            ->join('products', 'order_items.product_id', '=', 'products.product_id')
+            ->where('products.store_id', $storeId)
+            ->select('products.product_id', 'products.name', DB::raw('SUM(order_items.quantity) as total_quantity'))
+            ->groupBy('products.product_id', 'products.name')
+            ->orderBy('total_quantity')
+            ->first();
+    }
+
+    private function getPendingOrders($storeId)
+    {
+        return DB::table('orders')
             ->join('order_items', 'orders.order_id', '=', 'order_items.order_id')
             ->join('products', 'order_items.product_id', '=', 'products.product_id')
-            ->where('products.store_id', $store->store_id)
+            ->where('products.store_id', $storeId)
             ->where('orders.status', 'pending')
             ->count();
-        $leastSoldProduct = DB::table('order_items')
-            ->join('products', 'order_items.product_id', '=', 'products.product_id')
-            ->where('products.store_id', $store->store_id)
-            ->select('products.product_id', 'products.name', DB::raw('SUM(order_items.quantity) as total_quantity'))
-            ->groupBy('products.product_id', 'products.name')
-            ->orderBy('total_quantity', 'ASC')
-            ->first();
+    }
 
+    private function getSalesData($storeId, $request)
+    {
         $selectedMonth = $request->query('month', Carbon::now()->format('Y-m'));
         $startOfMonth = Carbon::createFromFormat('Y-m', $selectedMonth)->startOfMonth();
         $endOfMonth = Carbon::createFromFormat('Y-m', $selectedMonth)->endOfMonth();
@@ -84,7 +249,7 @@ class StoreController extends Controller
             $sales = DB::table('orders')
                 ->join('order_items', 'orders.order_id', '=', 'order_items.order_id')
                 ->join('products', 'order_items.product_id', '=', 'products.product_id')
-                ->where('products.store_id', $store->store_id)
+                ->where('products.store_id', $storeId)
                 ->where('orders.status', 'shipped')
                 ->whereBetween('orders.created_at', [$week['start'], $week['end']])
                 ->sum('orders.total_amount');
@@ -97,144 +262,12 @@ class StoreController extends Controller
             $month = Carbon::now()->addMonths($i);
             $monthsOptions[] = [
                 'value' => $month->format('Y-m'),
-                'label' => $month->format('F Y')
+                'label' => $month->format('F Y'),
             ];
         }
+
         $weeksLabels = array_map(fn($week) => $week['start'] . ' to ' . $week['end'], $weeks);
 
-        return view('stores.owner-dashboard', compact('store', 'totalSales', 'mostSoldProduct', 'pendingOrders', 'leastSoldProduct', 'weeks', 'salesData', 'monthsOptions', 'weeksLabels'));
-    }
-    // fecth product and category for product listing in a store
-    public function productsListing(Request $request, $id, $categoryId = null)
-    {
-        $store = Store::findOrFail($id);
-
-        $query = Product::where('store_id', $id)->with('category');
-
-        if ($request->has('search') && !empty($request->input('search'))) {
-            $search = $request->input('search');
-            $query->where('name', 'like', "%{$search}%");
-        }
-
-        if ($categoryId) {
-            $query->where('category_id', $categoryId);
-        }
-
-        $products = $query->paginate(10);
-
-        $categories = Product::where('store_id', $id)->with('category')->get()
-            ->groupBy('category_id')
-            ->map(function ($products, $categoryId) {
-                return [
-                    'category' => Category::find($categoryId),
-                    'products' => $products
-                ];
-            })->values();
-
-        $selectedCategory = $categoryId ? Category::find($categoryId) : null;
-
-        if ($request->ajax()) {
-            return view('stores.products-listing', compact('store', 'categories', 'selectedCategory', 'products', 'request'))->render();
-        }
-
-        return view('stores.products-listing', compact('store', 'categories', 'selectedCategory', 'products', 'request'));
-    }
-    // Redirect to create store form
-    public function create()
-    {
-        return view('stores.create');
-    }
-
-    // Create seller and store
-    public function store(Request $request)
-    {
-        // Check if the authenticated user already has a store
-        $user = Auth::user();
-        $existingStore = $user->sellers()->whereNotNull('store_id')->first();
-
-        if ($existingStore) {
-            return back()->with('error', 'You already own a store.');
-        }
-
-        // Validate and create a new store
-        $validated = $request->validate([
-            'store_name' => 'required|string|max:255',
-            'store_description' => 'nullable|string',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
-        ]);
-
-        if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('logos');
-            $validated['logo'] = $logoPath;
-        }
-
-        // Create a new seller
-        $seller = Seller::create([
-            'seller_name' => $user->name,
-            'seller_email' => $user->email,
-            'phone_number' => $user->phone_number,
-            'user_id' => $user->user_id,
-            'store_id' => null,
-        ]);
-
-        $validated['seller_id'] = $seller->seller_id;
-        $store = Store::create($validated);
-        $seller->update(['store_id' => $store->store_id]);
-
-        return redirect()->route('stores.showForOwner', ['id' => $store->store_id])->with('success', 'Store and Seller created successfully!');
-    }
-
-    // Redirect to edit form
-    public function edit($id)
-    {
-        $store = Store::findOrFail($id);
-        return view('stores.setting', compact('store'));
-    }
-
-    // Update an existing store
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'store_name' => 'required|string|max:255',
-            'store_description' => 'nullable|string',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
-        $store = Store::findOrFail($id);
-
-        // Check and handle logo upload
-        if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('logos', 'public');
-            $store->logo = $logoPath;
-        }
-
-        // Update store details
-        $store->store_name = $request->store_name;
-        $store->store_description = $request->store_description;
-        $store->save();
-
-        return redirect()->route('stores.edit', $store->store_id)
-            ->with('success', 'Store updated successfully.');
-    }
-
-    // Delete a store
-    public function destroy($id)
-    {
-        $store = Store::findOrFail($id);
-        $store->products()->delete();
-        $store->delete();
-
-        return redirect()->route('products.index')->with('success', 'Store deleted successfully.');
-    }
-    public function redirectToStorePage()
-    {
-        $user = Auth::user();
-        $store = $user->sellers()->whereNotNull('store_id')->first();
-
-        if ($store) {
-            return redirect()->route('stores.showForOwner', ['id' => $store->store_id]);
-        } else {
-            return redirect()->route('stores.create')->with('info', 'You do not own a store yet. Please create one to proceed.');
-        }
+        return [$salesData, $weeksLabels, $monthsOptions];
     }
 }

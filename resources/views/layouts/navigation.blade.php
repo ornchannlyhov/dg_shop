@@ -1,5 +1,5 @@
 <style>
-.custom-modal {
+.custom-search-modal {
     display: none;
     position: fixed;
     top: 0;
@@ -10,16 +10,15 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    padding: 10px;
 }
 
-.custom-modal-content {
-    position: absolute; 
+.custom-search-modal-content {
+    position: absolute;
     background-color: #3f3f46;
     padding: 20px;
     width: 100%;
     max-width: 494px;
-    left: 139px; 
+    left: 139px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     max-height: 80%;
@@ -28,36 +27,33 @@
     color: white;
 }
 
-.modal-header {
+.modal-header-custom {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #4a5568;
-    padding-bottom: 10px;
 }
 
-.modal-body {
+.modal-body-custom {
     max-height: 400px;
     overflow-y: auto;
-    padding-top: 10px;
 }
 
-.search-container {
+.search-bar-container {
     position: relative;
     width: 100%;
 }
 
-.search-container input[type="text"] {
+.search-bar-container input[type="text"] {
     width: 100%;
     padding: 10px 35px 10px 15px;
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 14px;
     background-color: #fff;
-    color: black; 
+    color: black;
 }
 
-.search-container button {
+.search-bar-container button {
     position: absolute;
     right: 10px;
     top: 50%;
@@ -69,78 +65,100 @@
     cursor: pointer;
 }
 
-.close {
+.close-custom {
     font-size: 2rem;
-    color: white; 
+    color: white;
     cursor: pointer;
-    padding: 5px;
     transition: transform 0.3s ease, color 0.3s ease;
 }
 
-.close:hover {
+.close-custom:hover {
     color: #ff4d4d;
     transform: scale(1.2);
 }
 
 @media (max-width: 1024px) {
-    .custom-modal-content {
-        left: 16px; 
-        width: calc(100% - 32px); 
-        max-width: 100%; 
+    .custom-search-modal-content {
+        left: 16px;
+        width: calc(100% - 32px);
+        max-width: 100%;
     }
 
-    .modal-body {
+    .modal-body-custom {
         max-height: 300px;
     }
 }
 
 @media (max-width: 768px) {
-    .custom-modal-content {
-        left: 16px; 
-        width: calc(100% - 32px); 
-        max-width: 100%; 
+    .custom-search-modal-content {
+        left: 16px;
+        width: calc(100% - 32px);
+        max-width: 100%;
     }
 
-    .modal-body {
+    .modal-body-custom {
         max-height: 300px;
     }
 }
 
 @media (max-width: 480px) {
-    .custom-modal-content {
-        left: 8px; 
+    .custom-search-modal-content {
+        left: 8px;
         width: calc(100% - 16px);
-        max-width: 100%; 
+        max-width: 100%;
         padding: 15px;
     }
 
-    .modal-header {
+    .modal-header-custom {
         font-size: 1rem;
     }
 
-    .close {
+    .close-custom {
         font-size: 1.5rem;
     }
 }
 
-.dark .custom-modal-content {
+.dark .custom-search-modal-content {
     background-color: #2d3748;
 }
 
-.dark .modal-header {
-    border-bottom: 1px solid #4a5568;
-}
 
-.dark .search-container input[type="text"] {
+.dark .search-bar-container input[type="text"] {
     background-color: #4a5568;
     color: white;
     border: 1px solid #718096;
 }
 
-.dark .close {
+.dark .close-custom {
     color: #ff4d4d;
 }
+
+.search-result-item-custom {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.product-card-custom {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.product-card-custom img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    margin-right: 15px;
+}
+
+.product-name-custom {
+    font-size: 16px;
+    color: white;
+}
 </style>
+
 <nav x-data="{ open: false }" class="bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-gray-700">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -156,7 +174,7 @@
                 <!-- Search Bar -->
                 <div class="flex-grow mx-4 ml-2">
                     <form id="searchForm" method="GET" class="relative flex items-center w-full">
-                        <div class="search-container">
+                        <div class="search-bar-container">
                             <input id="searchInput" type="text" name="search" placeholder="Search..." 
                                 class="form-control rounded border border-gray-30 bg-white text-gray-900 dark:text-gray-200">
                             <button id="searchButton" type="button">
@@ -191,7 +209,7 @@
                             <div>{{ Auth::user()->name }}</div>
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
                             </div>
                         </button>
@@ -271,21 +289,18 @@
     </div>
 
     <!-- Modal -->
-    <div class="custom-modal mt-16" id="searchModal">
-        <div class="custom-modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Search Results</h5>
-                <button type="button" class="close" id="closeModal">
+    <div class="custom-search-modal mt-16" id="searchModal">
+        <div class="custom-search-modal-content">
+            <div class="modal-header-custom">
+                <h5 class="modal-title mt-2">Search Results</h5>
+                <button type="button" class="close-custom" id="closeModal">
                     <span>&times;</span>
                 </button>
             </div>
-            <div class="modal-body" id="searchResults">
-            </div>
+            <div class="modal-body-custom" id="searchResults"></div>
         </div>
     </div>
-
 </nav>
-
 
 <!-- jQuery and Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -315,11 +330,19 @@
 
                         if (response.products && response.products.length > 0) {
                             response.products.forEach(product => {
+                                // Check if the product has an image, if not use a default image
+                                const imageUrl = product.image ? 
+                                    `{{ asset('storage/') }}/${product.image}` : 
+                                    `{{ asset('storage/default_image.jpg') }}`;
+
+                                // Use string concatenation for dynamic route generation
+                                const productUrl = "{{ route('products.show', ':id') }}".replace(':id', product.product_id);
+
                                 resultsHtml += `
-                                    <div class="search-result-item">
-                                        <a href="/products/${product.id}" class="d-flex align-items-center">
-                                            <img src="${product.image_url}" alt="${product.name}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;">
-                                            <span>${product.name}</span>
+                                    <div class="search-result-item-custom">
+                                        <a href="${productUrl}" class="d-flex align-items-center product-card-custom">
+                                            <img src="${imageUrl}" alt="${product.name}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 15px;">
+                                            <span class="product-name-custom">${product.name}</span>
                                         </a>
                                     </div>
                                     <hr>
@@ -329,27 +352,20 @@
                             resultsHtml = '<p class="text-muted">No results found.</p>';
                         }
 
-                        $('#searchResults').html(resultsHtml); 
+                        $('#searchResults').html(resultsHtml);
                     },
                     error: function() {
                         $('#searchResults').html('<p class="text-danger">Error fetching data.</p>');
                     }
                 });
             } else {
-                $('#searchResults').html('<p class="text-muted">Start typing to see results...</p>');
+                $('#searchResults').html('<p class="text-muted">No results found.</p>');
             }
         });
 
+        // Close modal
         $('#closeModal').on('click', function() {
             searchModal.hide();
         });
-
-        $(window).on('click', function(event) {
-            if ($(event.target).is(searchModal)) {
-                searchModal.hide();
-            }
-        });
     });
 </script>
-
-

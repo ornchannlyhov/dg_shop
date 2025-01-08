@@ -33,13 +33,14 @@
             style="background-color: #18181b; position: sticky; top: 0; height: auto;">
             <!-- Sidebar Links -->
             <div class="flex items-center px-4">
-                @if($store->logo)
-                    <img src="{{ asset('storage/' . $store->logo) }}" alt="{{ $store->store_name }} Logo"
-                        class="w-16 h-16 object-cover rounded-full">
+                @if ($store->logo)
+                    <img src="{{ asset('storage/' . $store->logo) }}" alt="Store Logo"
+                        class="w-16 h-16 rounded-full object-cover">
                 @else
-                    <div class="w-16 h-16 bg-gray-200 rounded-full"></div>
+                    <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                    </div>
                 @endif
-                <div>
+                <div class="ml-4">
                     <h2 class="text-2xl font-semibold text-gray-300">{{ $store->store_name }}</h2>
                 </div>
             </div>

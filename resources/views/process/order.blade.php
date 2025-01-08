@@ -18,9 +18,20 @@
             @foreach($orders as $order)
                 <div class="bg-zinc-700 p-6 mb-8 rounded-lg shadow-lg">
                     <div class="flex justify-between items-center mb-4">
-                        <h4 class="text-lg font-medium">{{ $order->store->store_name }}</h4>
+                        <div class="flex items-center">
+                            @if ($order->store->logo)
+                                <img src="{{ asset('storage/' . $order->store->logo) }}" alt="Store Logo"
+                                    class="w-12 h-12 rounded-full object-cover mr-3">
+                            @else
+                                <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-gray-400 text-xl">🏠</span>
+                                </div>
+                            @endif
+                            <h4 class="text-lg font-medium">{{ $order->store->store_name }}</h4>
+                        </div>
                         <p class="text-gray-400 text-sm">{{ ucfirst($order->status) }}</p>
                     </div>
+
 
                     @foreach($order->items as $item)
                         <div class="flex items-center mb-4">

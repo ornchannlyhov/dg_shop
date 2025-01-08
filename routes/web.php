@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SocialiteController;
 use App\Http\Controllers\ProductController;
@@ -8,7 +9,6 @@ use App\Http\Controllers\StoreController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\CartItemController;
 
 //Gusess route
@@ -73,6 +73,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/payment/{order_id}/process', [PaymentController::class, 'processPayment'])->name('payment.process');
     Route::get('/payment/{order_id}/success', [PaymentController::class, 'success'])->name('payment.success');
     Route::get('/payment/{order_id}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
+    
 });
 
 require __DIR__ . '/auth.php';
