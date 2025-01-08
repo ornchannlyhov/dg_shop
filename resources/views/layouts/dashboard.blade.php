@@ -54,7 +54,7 @@
                     <i class="fas fa-box-open text-green-500"></i>
                     <span class="ml-3">Products</span>
                 </a>
-                <a
+                <a href="{{ route('storeOrderView', ['storeId' => $store->store_id]) }}"
                     class="flex items-center py-2 px-4 text-white hover:bg-gray-700">
                     <i class="fa-solid fa-file text-green-500"></i>
                     <span class="ml-4">Order Request</span>
@@ -83,11 +83,6 @@
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                     <h2 class="text-2xl font-semibold text-gray-300 ml-4 mb-1">{{ $store->store_name }}</h2>
-                </div>
-                <div>
-                    <button id="messageButton" class="text-gray-500 focus:outline-none">
-                        <i class="fas fa-envelope text-green-500 text-xl"></i>
-                    </button>
                 </div>
             </div>
 

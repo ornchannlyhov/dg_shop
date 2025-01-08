@@ -51,13 +51,13 @@ class PaymentController extends Controller
 
     private function processABA(Order $order)
     {
-        $order->update(['status' => 'completed']);
+        $order->update(['status' => 'pending']);
         return redirect()->route('payment.success', ['order_id' => $order->order_id]);
     }
 
     private function processCashOnDelivery(Order $order)
     {
-        $order->update(['status' => 'completed']);
+        $order->update(['status' => 'pending']);
         return redirect()->route('payment.success', ['order_id' => $order->order_id]);
     }
 }

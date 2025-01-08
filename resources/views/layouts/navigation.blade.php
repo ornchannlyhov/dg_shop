@@ -1,32 +1,146 @@
 <style>
-        .custom-modal {
-            display: none;
-            position: fixed;
-            top: 20;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .custom-modal-content {
-            background-color: #fff;
-            padding: 20px;
-            width: 80%;
-            max-width: 600px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            max-height: 80%;
-            overflow-y: auto;
-        }
-        .modal-body {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-</style>
+.custom-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 10px;
+}
 
+.custom-modal-content {
+    position: absolute; 
+    background-color: #3f3f46;
+    padding: 20px;
+    width: 100%;
+    max-width: 494px;
+    left: 139px; 
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-height: 80%;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #4a5568;
+    padding-bottom: 10px;
+}
+
+.modal-body {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-top: 10px;
+}
+
+.search-container {
+    position: relative;
+    width: 100%;
+}
+
+.search-container input[type="text"] {
+    width: 100%;
+    padding: 10px 35px 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: #fff;
+    color: black; 
+}
+
+.search-container button {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: black;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.close {
+    font-size: 2rem;
+    color: white; 
+    cursor: pointer;
+    padding: 5px;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.close:hover {
+    color: #ff4d4d;
+    transform: scale(1.2);
+}
+
+@media (max-width: 1024px) {
+    .custom-modal-content {
+        left: 16px; 
+        width: calc(100% - 32px); 
+        max-width: 100%; 
+    }
+
+    .modal-body {
+        max-height: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .custom-modal-content {
+        left: 16px; 
+        width: calc(100% - 32px); 
+        max-width: 100%; 
+    }
+
+    .modal-body {
+        max-height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .custom-modal-content {
+        left: 8px; 
+        width: calc(100% - 16px);
+        max-width: 100%; 
+        padding: 15px;
+    }
+
+    .modal-header {
+        font-size: 1rem;
+    }
+
+    .close {
+        font-size: 1.5rem;
+    }
+}
+
+.dark .custom-modal-content {
+    background-color: #2d3748;
+}
+
+.dark .modal-header {
+    border-bottom: 1px solid #4a5568;
+}
+
+.dark .search-container input[type="text"] {
+    background-color: #4a5568;
+    color: white;
+    border: 1px solid #718096;
+}
+
+.dark .close {
+    color: #ff4d4d;
+}
+</style>
 <nav x-data="{ open: false }" class="bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-gray-700">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,12 +155,14 @@
 
                 <!-- Search Bar -->
                 <div class="flex-grow mx-4 ml-2">
-                    <form id="searchForm" method="GET" class="relative flex items-center">
-                        <input id="searchInput" type="text" name="search" placeholder="Search..." 
-                            class="form-control rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-zinc-500 text-gray-900 dark:text-gray-200">
-                        
-                        <button id="searchButton" type="button" class="btn btn-secondary ml-2 text-white">
-                        </button>
+                    <form id="searchForm" method="GET" class="relative flex items-center w-full">
+                        <div class="search-container">
+                            <input id="searchInput" type="text" name="search" placeholder="Search..." 
+                                class="form-control rounded border border-gray-30 bg-white text-gray-900 dark:text-gray-200">
+                            <button id="searchButton" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
                     </form>
                 </div>
 
@@ -58,7 +174,7 @@
                     <x-nav-link :href="route('redirect.toStore')" :active="false">
                         <i class="fas fa-store mr-2"></i> {{ __('My Stores') }}
                     </x-nav-link>
-                    <x-nav-link :href="''" :active="false">
+                    <x-nav-link :href="route('userOrderView')" :active="false">
                         <i class="fas fa-box mr-2"></i> {{ __('Orders') }}
                     </x-nav-link>
                     <x-nav-link :href="route('cart.view')" :active="false">
@@ -121,7 +237,7 @@
             <x-responsive-nav-link :href="route('redirect.toStore')" :active="false">
                 <i class="fas fa-store mr-2"></i> {{ __('My Stores') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="''" :active="false">
+            <x-responsive-nav-link :href="route('userOrderView')" :active="false">
                 <i class="fas fa-box mr-2"></i> {{ __('Orders') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('cart.view')" :active="false">
@@ -155,7 +271,7 @@
     </div>
 
     <!-- Modal -->
-        <div class="custom-modal" id="searchModal">
+    <div class="custom-modal mt-16" id="searchModal">
         <div class="custom-modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Search Results</h5>
@@ -167,7 +283,9 @@
             </div>
         </div>
     </div>
+
 </nav>
+
 
 <!-- jQuery and Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -222,12 +340,10 @@
             }
         });
 
-        // Close modal when close button is clicked
         $('#closeModal').on('click', function() {
             searchModal.hide();
         });
 
-        // Close modal when clicking outside the modal content
         $(window).on('click', function(event) {
             if ($(event.target).is(searchModal)) {
                 searchModal.hide();

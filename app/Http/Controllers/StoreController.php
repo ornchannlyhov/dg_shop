@@ -42,7 +42,7 @@ class StoreController extends Controller
             ->join('order_items', 'orders.order_id', '=', 'order_items.order_id')
             ->join('products', 'order_items.product_id', '=', 'products.product_id')
             ->where('products.store_id', $store->store_id)
-            ->where('orders.status', 'delivered')
+            ->where('orders.status', 'shipped')
             ->sum('orders.total_amount');
 
         $mostSoldProduct = DB::table('order_items')
@@ -59,15 +59,6 @@ class StoreController extends Controller
             ->where('products.store_id', $store->store_id)
             ->where('orders.status', 'pending')
             ->count();
-
-        $profit = DB::table('orders')
-            ->join('order_items', 'orders.order_id', '=', 'order_items.order_id')
-            ->join('products', 'order_items.product_id', '=', 'products.product_id')
-            ->where('products.store_id', $store->store_id)
-            ->where('orders.status', 'delivered')
-            ->select(DB::raw('SUM(order_items.quantity * products.price) as total_profit'))
-            ->value('total_profit');
-
         $leastSoldProduct = DB::table('order_items')
             ->join('products', 'order_items.product_id', '=', 'products.product_id')
             ->where('products.store_id', $store->store_id)
@@ -76,7 +67,6 @@ class StoreController extends Controller
             ->orderBy('total_quantity', 'ASC')
             ->first();
 
-        // Handle month selection
         $selectedMonth = $request->query('month', Carbon::now()->format('Y-m'));
         $startOfMonth = Carbon::createFromFormat('Y-m', $selectedMonth)->startOfMonth();
         $endOfMonth = Carbon::createFromFormat('Y-m', $selectedMonth)->endOfMonth();
@@ -95,7 +85,7 @@ class StoreController extends Controller
                 ->join('order_items', 'orders.order_id', '=', 'order_items.order_id')
                 ->join('products', 'order_items.product_id', '=', 'products.product_id')
                 ->where('products.store_id', $store->store_id)
-                ->where('orders.status', 'delivered')
+                ->where('orders.status', 'shipped')
                 ->whereBetween('orders.created_at', [$week['start'], $week['end']])
                 ->sum('orders.total_amount');
 
@@ -112,7 +102,7 @@ class StoreController extends Controller
         }
         $weeksLabels = array_map(fn($week) => $week['start'] . ' to ' . $week['end'], $weeks);
 
-        return view('stores.owner-dashboard', compact('store', 'totalSales', 'mostSoldProduct', 'pendingOrders', 'profit', 'leastSoldProduct', 'weeks', 'salesData', 'monthsOptions', 'weeksLabels'));
+        return view('stores.owner-dashboard', compact('store', 'totalSales', 'mostSoldProduct', 'pendingOrders', 'leastSoldProduct', 'weeks', 'salesData', 'monthsOptions', 'weeksLabels'));
     }
     // fecth product and category for product listing in a store
     public function productsListing(Request $request, $id, $categoryId = null)

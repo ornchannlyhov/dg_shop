@@ -21,7 +21,7 @@
             @foreach($carts as $cart)
                 <div class="bg-zinc-700 p-6 mb-8 rounded-lg shadow-lg" id="cart-{{ $cart->cart_id }}">
                     <!-- Store Name -->
-                    <h4 class="text-lg font-medium mb-4">Cart for Store: {{ $cart->store->store_name }}</h4>
+                    <h4 class="text-lg font-medium mb-4">{{ $cart->store->store_name }}</h4>
 
                     <!-- Cart Items -->
                     @foreach($cart->items as $cartItem)
@@ -113,7 +113,6 @@
             <div id="cashOnDeliveryForm" class="mt-4 hidden">
                 <h3 class="font-semibold text-white">Cash on Delivery</h3>
                 <p class="text-white">You will pay cash upon delivery.</p>
-                <button class="bg-blue-500 text-white px-6 py-2 mt-4 rounded-lg">Confirm Order</button>
             </div>
 
             <!-- Modal Buttons -->
@@ -130,7 +129,6 @@
 
     <script>
         $(document).ready(function () {
-            // Handle Quantity Update
             $('.update-quantity').click(function () {
                 var cartItemId = $(this).data('cart-item-id');
                 var change = $(this).data('change');
@@ -139,16 +137,18 @@
 
                 $.ajax({
                     url: '{{ url("/cart/update") }}/' + cartItemId,
-                    method: 'PUT',
+                    method: 'GET',
                     data: {
                         _token: '{{ csrf_token() }}',
                         change: change
                     },
                     success: function (response) {
                         if (response.success) {
+                            // Update quantity and total price
                             quantityElement.text(response.quantity);
                             totalPriceElement.text(response.total_price);
 
+                            // If item removed, remove it from UI
                             if (response.removed) {
                                 $('#cart-item-' + cartItemId).remove();
                             }
@@ -156,29 +156,37 @@
                             if (response.cartRemoved) {
                                 $('#cart-' + response.cartId).remove();
                             }
+
+                            // Show success message
+                            showMessage(response.message, 'success');
                         } else {
-                            alert(response.message);
+                            // Show error message from backend
+                            showMessage(response.message, 'error');
                         }
                     },
                     error: function (xhr) {
-                        console.log(xhr.responseText);
-                        alert('An error occurred. Please try again.');
+                        // Check if the error status is 400 (bad request) to handle it properly
+                        if (xhr.status === 400) {
+                            var response = JSON.parse(xhr.responseText);
+                            showMessage(response.message, 'error');
+                        } else {
+                            // Handle other types of errors
+                            showMessage('An error occurred. Please try again.', 'error');
+                        }
                     }
                 });
             });
 
-            // Show Modal on Order Button Click
+            // Additional functions to handle modal visibility and payment method selection
             $('#orderButton').click(function () {
                 $('#orderModal').removeClass('hidden').addClass('opacity-100');
             });
 
-            // Cancel Button in Modal
             $('#cancelButton').click(function () {
                 $('#orderModal').addClass('opacity-0');
                 setTimeout(() => $('#orderModal').addClass('hidden'), 300);
             });
 
-            // Payment Method Selection
             $('input[name="paymentMethod"]').change(function () {
                 var paymentMethod = $(this).val();
                 $('#stripeForm, #abaForm, #cashOnDeliveryForm').addClass('hidden');
@@ -193,7 +201,6 @@
                 }
             });
         });
-
         function confirmOrder() {
             const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
 
@@ -208,7 +215,6 @@
             formData.append('payment_method', paymentMethod);
             formData.append('_token', '{{ csrf_token() }}');
 
-            // Perform the checkout request via AJAX
             $.ajax({
                 url: '{{ route('order.checkout') }}',
                 method: 'POST',
@@ -228,7 +234,19 @@
                 }
             });
         }
+        function showMessage(message, type) {
+            var alertClass = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+            var alertContainer = $('<div class="alert alert-message text-white ' + alertClass + ' p-4 rounded-lg shadow-md fixed top-10 left-1/2 transform -translate-x-1/2 z-50 w-3/4 md:w-1/3" role="alert"></div>');
+            alertContainer.text(message);
 
+            $('body').append(alertContainer);
+
+            setTimeout(function () {
+                alertContainer.fadeOut(300, function () {
+                    alertContainer.remove();
+                });
+            }, 3000);
+        }
     </script>
 
 </body>

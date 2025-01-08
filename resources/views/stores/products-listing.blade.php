@@ -7,18 +7,18 @@
 <div class="p-6 min-h-screen">
     <!-- Category Section -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+        <!-- Link for All Products -->
         <a href="{{ route('stores.products-listing', ['id' => $store->store_id]) }}"
-            class="bg-gray-800 p-3 rounded-lg shadow-md hover:bg-gray-700 text-white text-center"
-            style="background-color: #3f3f46; height: 60px;">
-            <h3 class="text-lg font-bold text-left">All Products</h3>
+            class="bg-gray-800 px-3 py-3 rounded-lg shadow-md hover:bg-gray-700 text-white text-center"
+            style="height: 60px;">
+            All Products
         </a>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+        <!-- Categories Display -->
         @foreach($categories as $categoryData)
             <a href="{{ route('stores.products-listing', ['id' => $store->store_id, 'categoryId' => $categoryData['category']->category_id]) }}"
                 class="bg-gray-800 px-3 py-3 rounded-lg shadow-md hover:bg-gray-700 text-white text-center"
-                style="background-color: #3f3f46; height: 60px;">
-                <h3 class="text-lg font-bold text-left">{{ $categoryData['category']->name }}</h3>
+                style="height: 60px;">
+                {{$categoryData['category']->name }}
             </a>
         @endforeach
     </div>
@@ -141,28 +141,28 @@
                             categoryId: {{ $selectedCategory->category_id }},
                         @endif
                     },
-                    success: function (response) {
-                        $('#productTableBody').html($(response).find('#productTableBody').html());
+                success: function (response) {
+                    $('#productTableBody').html($(response).find('#productTableBody').html());
 
-                        bindEditButtons();
-                    },
-                    error: function () {
-                        console.log('Error fetching data.');
-                    }
+                    bindEditButtons();
+                },
+                error: function () {
+                    console.log('Error fetching data.');
+                }
                 });
             });
 
-            function bindEditButtons() {
-                $('a[data-action="edit-product"]').on('click', function (e) {
-                    e.preventDefault();
-                    $('#productModal .modal-body').load($(this).data('href'), function () {
-                        $('#productModal').modal('show');
-                    });
+        function bindEditButtons() {
+            $('a[data-action="edit-product"]').on('click', function (e) {
+                e.preventDefault();
+                $('#productModal .modal-body').load($(this).data('href'), function () {
+                    $('#productModal').modal('show');
                 });
-            }
+            });
+        }
 
-            bindEditButtons();
+        bindEditButtons();
         });
     </script>
 
-@endsection
+    @endsection
